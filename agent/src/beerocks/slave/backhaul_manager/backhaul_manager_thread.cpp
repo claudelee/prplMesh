@@ -34,6 +34,8 @@
 #include "../helpers/media_type.h"
 #include "../link_metrics/ieee802_11_link_metrics_collector.h"
 #include "../link_metrics/ieee802_3_link_metrics_collector.h"
+
+#include "../tasks/ap_autoconfiguration_task.h"
 #include "../tasks/topology_task.h"
 #include "../tlvf_utils.h"
 
@@ -192,6 +194,12 @@ backhaul_manager::backhaul_manager(const config_file::sConfigSlave &config,
         LOG(ERROR) << "failed to allocate Topology Task!";
     }
     m_task_pool.add_task(topology_task);
+
+    auto ap_auto_configuration_task = std::make_shared<ApAutoConfigurationTask>(*this, cmdu_tx);
+    if (!ap_auto_configuration_task) {
+        LOG(ERROR) << "failed to allocate ap_auto_configuration_task Task!";
+    }
+    m_task_pool.add_task(ap_auto_configuration_task);
 }
 
 backhaul_manager::~backhaul_manager() { backhaul_manager::on_thread_stop(); }
