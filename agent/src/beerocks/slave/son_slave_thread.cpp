@@ -4203,8 +4203,10 @@ bool slave_thread::handle_client_association_request(Socket *sd, ieee1905_1::Cmd
 bool slave_thread::handle_1905_higher_layer_data_message(Socket &sd,
                                                          ieee1905_1::CmduMessageRx &cmdu_rx)
 {
+    LOG(DEBUG) << "Received HIGHER LAYER DATA MESSAGE";
+
     // Only one backhaul manager (the slave) should return ACK for higher layer data message.
-    if (is_backhaul_manager) {
+    if (!is_backhaul_manager) {
         return true;
     }
 
