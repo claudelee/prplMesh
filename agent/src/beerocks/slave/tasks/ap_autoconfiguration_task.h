@@ -25,6 +25,9 @@ public:
 
     void work() override;
 
+    enum eEvent : uint8_t {
+        START_AP_AUTOCONFIGURATION,
+    };
 
     void handle_event(uint8_t event_enum_value, void *event_obj) override;
 

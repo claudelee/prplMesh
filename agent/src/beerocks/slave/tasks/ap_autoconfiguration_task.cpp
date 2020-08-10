@@ -101,7 +101,39 @@ void ApAutoConfigurationTask::work()
     db->statuses.ap_autoconfiguration_completed = !ap_autoconfig_not_completed;
 }
 
-void ApAutoConfigurationTask::handle_event(uint8_t event_enum_value, void *event_obj) {}
+void ApAutoConfigurationTask::handle_event(uint8_t event_enum_value, void *event_obj)
+{
+    switch (eEvent(event_enum_value)) {
+    case START_AP_AUTOCONFIGURATION: {
+        auto db = AgentDB::get();
+        for (const auto &radio : db->get_radios_list()) {
+            if (!radio) {
+                continue;
+            }
+
+            if (event_obj) {
+                auto specific_iface_ptr = reinterpret_cast<std::string *>(event_obj);
+                if (*specific_iface_ptr != radio->front.iface_name) {
+                    continue;
+                }
+            }
+
+            LOG(DEBUG) << "starting discovery sequence on radio_iface=" << radio->front.iface_name;
+            FSM_MOVE_STATE(radio->front.iface_name, eState::CONTROLLER_DISCOVERY);
+
+            // Reset the discovery statuses.
+            m_discovery_status[radio->front.freq_type] = {};
+        }
+        // Call work() to not waste time, and send_ap_autoconfiguration_search_message immediately.
+        work();
+        break;
+    }
+    default: {
+        LOG(DEBUG) << "Message handler doesn't exists for event type " << event_enum_value;
+        break;
+    }
+    }
+}
 
 bool ApAutoConfigurationTask::handle_cmdu(ieee1905_1::CmduMessageRx &cmdu_rx,
                                           const sMacAddr &src_mac,
